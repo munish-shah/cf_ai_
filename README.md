@@ -147,34 +147,32 @@ This will open your browser for authentication. Free Cloudflare accounts work fi
 
 ### 3. Configure Account ID (Optional)
 
-**Important**: Never commit your account ID to git! Use an environment variable instead.
+**Important**: Never commit your account ID to git! The setup script will auto-detect it, or you can set it as an environment variable.
 
-Get your account ID:
+**Option 1: Auto-detection (Recommended)**
+The `start.sh` script will automatically detect your account ID from your authenticated Cloudflare session. No action needed!
+
+**Option 2: Manual environment variable**
+If you want to set it manually, get your account ID first:
 
 ```bash
 npx wrangler whoami
 ```
 
-Set it as an environment variable:
+Then set it as an environment variable (this session only):
 
 ```bash
-# Linux/macOS
+# Linux/macOS/Git Bash
 export CLOUDFLARE_ACCOUNT_ID='your-account-id-here'
 
-# Windows (Git Bash)
-export CLOUDFLARE_ACCOUNT_ID='your-account-id-here'
-
-# Windows (PowerShell)
+# Windows PowerShell
 $env:CLOUDFLARE_ACCOUNT_ID='your-account-id-here'
 ```
 
-**Note**: Wrangler can also auto-detect your account ID from your authenticated session, so this step is optional.
-
-Alternatively, you can add it to `wrangler.toml` (but make sure it's in `.gitignore`):
-
-```toml
-account_id = "your-account-id"
-```
+**Note**: 
+- The environment variable is only active for your current terminal session
+- Wrangler can also auto-detect your account ID from your authenticated session, so this step is optional
+- The account ID is **never** written to `wrangler.toml` to prevent accidentally committing it to git
 
 ### 4. Create Vectorize Index
 

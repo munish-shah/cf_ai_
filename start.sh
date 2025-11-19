@@ -352,19 +352,10 @@ if [ "$INDEX_EXISTS" = "no" ]; then
             if [ ! -z "$EXTRACTED_ID" ] && echo "$EXTRACTED_ID" | grep -qE '^[a-f0-9]{32}$'; then
                 ACCOUNT_ID="$EXTRACTED_ID"
                 echo "Extracted account ID from Vectorize error: ${ACCOUNT_ID:0:8}..."
-                # Add it to wrangler.toml
-                if [[ "$OSTYPE" == "darwin"* ]]; then
-                    sed -i '' "s/^# account_id = .*/account_id = \"$ACCOUNT_ID\"/" wrangler.toml 2>/dev/null || \
-                    sed -i '' "/^name =/a\\
-account_id = \"$ACCOUNT_ID\"
-" wrangler.toml
-                else
-                    sed -i "s/^# account_id = .*/account_id = \"$ACCOUNT_ID\"/" wrangler.toml 2>/dev/null || \
-                    sed -i "/^name =/a\\
-account_id = \"$ACCOUNT_ID\"
-" wrangler.toml
-                fi
-                echo -e "${GREEN}✅ Account ID added to wrangler.toml${NC}"
+                # Set as environment variable (never write to wrangler.toml to avoid committing)
+                export CLOUDFLARE_ACCOUNT_ID="$ACCOUNT_ID"
+                echo -e "${GREEN}✅ Account ID set as environment variable (CLOUDFLARE_ACCOUNT_ID)${NC}"
+                echo -e "${YELLOW}Note: This is stored in memory for this session only${NC}"
             fi
         fi
         
@@ -397,8 +388,8 @@ echo "If deployment fails with AI errors, enable Workers AI at:"
 echo "https://dash.cloudflare.com -> Workers & Pages -> AI"
 echo ""
 
-# Wrangler will auto-detect account_id from authenticated session
-# If CLOUDFLARE_ACCOUNT_ID is set, it will be available but wrangler gets it from session
+# Wrangler supports CLOUDFLARE_ACCOUNT_ID environment variable
+# If set, wrangler will use it. Otherwise, wrangler auto-detects from authenticated session.
 # We never write account_id to wrangler.toml to avoid committing it to git
 
 # Capture deployment output to extract worker URL
