@@ -147,19 +147,31 @@ This will open your browser for authentication. Free Cloudflare accounts work fi
 
 ### 3. Configure Account ID (Optional)
 
-**Important**: Never commit your account ID to git! The setup script will auto-detect it, or you can set it as an environment variable.
+**Important**: Never commit your account ID to git! The setup script will auto-detect it, or you can set it in a `.env` file.
 
 **Option 1: Auto-detection (Recommended)**
 The `start.sh` script will automatically detect your account ID from your authenticated Cloudflare session. No action needed!
 
-**Option 2: Manual environment variable**
-If you want to set it manually, get your account ID first:
+**Option 2: Use .env file (Recommended for manual setup)**
+Create a `.env` file in the project root:
 
+```bash
+# Copy the example file
+cp .env.example .env
+
+# Edit .env and add your account ID
+# CLOUDFLARE_ACCOUNT_ID=your-account-id-here
+```
+
+Get your account ID:
 ```bash
 npx wrangler whoami
 ```
 
-Then set it as an environment variable (this session only):
+The `.env` file is already in `.gitignore`, so it will never be committed to git.
+
+**Option 3: Environment variable (Session only)**
+If you prefer to set it as an environment variable for just this session:
 
 ```bash
 # Linux/macOS/Git Bash
@@ -170,7 +182,8 @@ $env:CLOUDFLARE_ACCOUNT_ID='your-account-id-here'
 ```
 
 **Note**: 
-- The environment variable is only active for your current terminal session
+- The `.env` file persists across sessions (recommended)
+- Environment variables are only active for your current terminal session
 - Wrangler can also auto-detect your account ID from your authenticated session, so this step is optional
 - The account ID is **never** written to `wrangler.toml` to prevent accidentally committing it to git
 

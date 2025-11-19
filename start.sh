@@ -255,14 +255,37 @@ else
 fi
 echo ""
 
-# Get account ID from environment variable or auto-detect (NEVER write to wrangler.toml to avoid committing it)
+# Load .env file if it exists (for sensitive configuration)
+if [ -f ".env" ]; then
+    echo "📄 Loading configuration from .env file..."
+    # Simple .env parser - handles KEY=value format
+    # This safely loads .env without executing arbitrary code
+    while IFS='=' read -r key value || [ -n "$key" ]; do
+        # Skip comments and empty lines
+        [[ "$key" =~ ^[[:space:]]*# ]] && continue
+        [[ -z "$key" ]] && continue
+        # Trim whitespace
+        key=$(echo "$key" | xargs)
+        value=$(echo "$value" | xargs)
+        # Remove quotes if present
+        value=$(echo "$value" | sed -e 's/^"//' -e 's/"$//' -e "s/^'//" -e "s/'$//")
+        # Export the variable
+        export "$key=$value" 2>/dev/null || true
+    done < .env
+fi
+
+# Get account ID from .env file, environment variable, or auto-detect (NEVER write to wrangler.toml)
 echo "🔍 Getting Cloudflare account ID..."
 ACCOUNT_ID=""
 
-# Method 1: Check environment variable (preferred - never committed to git)
+# Method 1: Check .env file (preferred - persists across sessions, never committed to git)
 if [ ! -z "$CLOUDFLARE_ACCOUNT_ID" ] && echo "$CLOUDFLARE_ACCOUNT_ID" | grep -qE '^[a-f0-9]{32}$'; then
     ACCOUNT_ID="$CLOUDFLARE_ACCOUNT_ID"
-    echo -e "${GREEN}✅ Account ID found in CLOUDFLARE_ACCOUNT_ID environment variable${NC}"
+    if [ -f ".env" ]; then
+        echo -e "${GREEN}✅ Account ID found in .env file${NC}"
+    else
+        echo -e "${GREEN}✅ Account ID found in CLOUDFLARE_ACCOUNT_ID environment variable${NC}"
+    fi
     export CLOUDFLARE_ACCOUNT_ID="$ACCOUNT_ID"
 else
     # Method 2: Try to get from wrangler whoami (may include account info)
@@ -304,7 +327,10 @@ else
         echo -e "${YELLOW}⚠️  Could not auto-detect account ID.${NC}"
         echo "This is OK - wrangler can get it from your authenticated session."
         echo ""
-        echo "To set it manually, use:"
+        echo "To set it manually, create a .env file:"
+        echo "  echo 'CLOUDFLARE_ACCOUNT_ID=your-account-id-here' > .env"
+        echo ""
+        echo "Or set it as an environment variable for this session:"
         echo "  export CLOUDFLARE_ACCOUNT_ID='your-account-id-here'"
         echo ""
         echo "You can find your account ID in:"
@@ -352,10 +378,25 @@ if [ "$INDEX_EXISTS" = "no" ]; then
             if [ ! -z "$EXTRACTED_ID" ] && echo "$EXTRACTED_ID" | grep -qE '^[a-f0-9]{32}$'; then
                 ACCOUNT_ID="$EXTRACTED_ID"
                 echo "Extracted account ID from Vectorize error: ${ACCOUNT_ID:0:8}..."
-                # Set as environment variable (never write to wrangler.toml to avoid committing)
+                # Save to .env file if it doesn't exist, otherwise just set as env var
+                if [ ! -f ".env" ]; then
+                    echo "CLOUDFLARE_ACCOUNT_ID=$ACCOUNT_ID" > .env
+                    echo -e "${GREEN}✅ Account ID saved to .env file${NC}"
+                else
+                    # Update .env if CLOUDFLARE_ACCOUNT_ID line exists, otherwise append
+                    if grep -q "^CLOUDFLARE_ACCOUNT_ID=" .env 2>/dev/null; then
+                        if [[ "$OSTYPE" == "darwin"* ]]; then
+                            sed -i '' "s/^CLOUDFLARE_ACCOUNT_ID=.*/CLOUDFLARE_ACCOUNT_ID=$ACCOUNT_ID/" .env
+                        else
+                            sed -i "s/^CLOUDFLARE_ACCOUNT_ID=.*/CLOUDFLARE_ACCOUNT_ID=$ACCOUNT_ID/" .env
+                        fi
+                        echo -e "${GREEN}✅ Account ID updated in .env file${NC}"
+                    else
+                        echo "CLOUDFLARE_ACCOUNT_ID=$ACCOUNT_ID" >> .env
+                        echo -e "${GREEN}✅ Account ID added to .env file${NC}"
+                    fi
+                fi
                 export CLOUDFLARE_ACCOUNT_ID="$ACCOUNT_ID"
-                echo -e "${GREEN}✅ Account ID set as environment variable (CLOUDFLARE_ACCOUNT_ID)${NC}"
-                echo -e "${YELLOW}Note: This is stored in memory for this session only${NC}"
             fi
         fi
         
