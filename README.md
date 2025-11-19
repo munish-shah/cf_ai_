@@ -194,9 +194,12 @@ Deploy the backend Worker:
 npm run deploy
 ```
 
-**Important**: If you get an error about "workers.dev subdomain", you need to create one first:
-1. Go to https://dash.cloudflare.com
-2. Navigate to **Workers & Pages**
+**Important**: If you get an error about "workers.dev subdomain" (error code 10063), you need to create one first:
+
+The setup script will automatically detect your account ID and provide a direct link. Or manually:
+1. Get your account ID: `npx wrangler whoami` (look for the 32-character hex string)
+2. Visit: `https://dash.cloudflare.com/YOUR_ACCOUNT_ID/workers-and-pages`
+   - Replace `YOUR_ACCOUNT_ID` with your actual account ID
 3. Open the **Workers** menu for the first time (this creates your subdomain automatically)
 4. Then run `npm run deploy` again
 
@@ -206,7 +209,18 @@ The deployment output will show your Worker URL (e.g., `https://cf-ai-developer-
 
 After deployment, populate the index with Cloudflare documentation:
 
+**Linux/macOS/Git Bash:**
 ```bash
+curl -X POST https://your-worker.your-subdomain.workers.dev/populate
+```
+
+**Windows PowerShell:**
+```powershell
+Invoke-WebRequest -Uri "https://your-worker.your-subdomain.workers.dev/populate" -Method POST
+```
+
+**Windows CMD:**
+```cmd
 curl -X POST https://your-worker.your-subdomain.workers.dev/populate
 ```
 

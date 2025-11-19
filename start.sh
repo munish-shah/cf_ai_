@@ -415,11 +415,34 @@ if [ $DEPLOY_EXIT -ne 0 ]; then
     if echo "$DEPLOY_OUTPUT" | grep -qi "workers.dev subdomain\|10063"; then
         echo -e "${YELLOW}⚠️  Workers.dev subdomain not set up!${NC}"
         echo ""
-        echo "You need to create a workers.dev subdomain first:"
-        echo "1. Go to: https://dash.cloudflare.com"
-        echo "2. Navigate to: Workers & Pages"
-        echo "3. Open the Workers menu for the first time (this creates your subdomain automatically)"
-        echo "4. Then run this script again"
+        
+        # Try to extract account ID from error or use detected one
+        EXTRACTED_ACCOUNT_ID=""
+        if echo "$DEPLOY_OUTPUT" | grep -qE '/accounts/[a-f0-9]{32}'; then
+            EXTRACTED_ACCOUNT_ID=$(echo "$DEPLOY_OUTPUT" | grep -oE '/accounts/[a-f0-9]{32}' | grep -oE '[a-f0-9]{32}' | head -1)
+        elif [ ! -z "$CLOUDFLARE_ACCOUNT_ID" ]; then
+            EXTRACTED_ACCOUNT_ID="$CLOUDFLARE_ACCOUNT_ID"
+        elif [ ! -z "$ACCOUNT_ID" ]; then
+            EXTRACTED_ACCOUNT_ID="$ACCOUNT_ID"
+        fi
+        
+        if [ ! -z "$EXTRACTED_ACCOUNT_ID" ] && echo "$EXTRACTED_ACCOUNT_ID" | grep -qE '^[a-f0-9]{32}$'; then
+            DASHBOARD_URL="https://dash.cloudflare.com/$EXTRACTED_ACCOUNT_ID/workers-and-pages"
+            echo "You need to create a workers.dev subdomain first:"
+            echo ""
+            echo "👉 Visit this link (opens your Workers & Pages dashboard):"
+            echo "   $DASHBOARD_URL"
+            echo ""
+            echo "Then:"
+            echo "1. Open the 'Workers' menu for the first time (this creates your subdomain automatically)"
+            echo "2. Come back and run this script again: ./start.sh"
+        else
+            echo "You need to create a workers.dev subdomain first:"
+            echo "1. Go to: https://dash.cloudflare.com"
+            echo "2. Navigate to: Workers & Pages"
+            echo "3. Open the Workers menu for the first time (this creates your subdomain automatically)"
+            echo "4. Then run this script again"
+        fi
         echo ""
         echo "Alternatively, you can set up the subdomain via:"
         echo "  $WRANGLER_CMD subdomain create"
