@@ -154,7 +154,7 @@ If you prefer to set up manually:
 ### 1. Clone and Install
 
 ```bash
-git clone https://github.com/munish-shah/cf_ai.git
+git clone https://github.com/munish-shah/cf_ai_.git
 cd cf_ai
 npm install
 ```
