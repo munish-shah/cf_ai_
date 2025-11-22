@@ -500,11 +500,7 @@ Modify `frontend/index.html` to customize the UI. The design uses Tailwind CSS f
 
 ## Contributing
 
-This is a demonstration project for Cloudflare's platform capabilities. Feel free to fork and extend it!
-
-## License
-
-MIT
+This is project demonstrates Cloudflare's platform capabilities, and supports creation on its platform. Feel free to fork and extend it!
 
 ## Acknowledgments
 
